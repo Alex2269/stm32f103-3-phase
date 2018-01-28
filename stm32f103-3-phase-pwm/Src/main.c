@@ -9,7 +9,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * COPYRIGHT(c) 2018 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -43,7 +43,8 @@
 
 /* USER CODE BEGIN Includes */
 #include "math.h"
-#define sinus_points 480
+#define sinus_points 255
+#define minimal_amplitude 3
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -55,8 +56,8 @@ float PI = 3.14;
 uint16_t sin_table_a[sinus_points];
 uint16_t sin_table_b[sinus_points];
 uint16_t sin_table_c[sinus_points];
-float tmp = 0; // delay for acceleration
-uint16_t speed = sinus_points+2;
+float tmp = 0; // acceleration time
+uint16_t speed = sinus_points+200; // set delay for begin minimal speed
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,8 +69,21 @@ void sin_init(uint16_t i);
 
 void sin_init(uint16_t i)
 {
-  sin_table_c[(i+(sinus_points/3*2)) & (sinus_points-1)]=sin_table_b[(i+sinus_points/3) & (sinus_points-1)]=sin_table_a[i]=(uint16_t)((sin ((float) i*(2*PI/sinus_points))+1)*(sinus_points/2-1));
+  sin_table_c[(i+(sinus_points/3*2)) & (sinus_points-1)]=
+  sin_table_b[(i+sinus_points/3) & (sinus_points-1)]=
+  sin_table_a[i]=
+  minimal_amplitude+(uint16_t)((sin((float) i*(2*PI/sinus_points))+1)*(sinus_points/2-1));
 }
+
+void delay_cycle(uint32_t cycle_count)
+{
+  uint32_t count=0;
+  for(count=0;count<cycle_count;count++)
+  {
+    __ASM volatile ("NOP");
+  }
+}
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -80,7 +94,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  uint32_t i,d;
+  uint32_t i;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -127,15 +141,16 @@ int main(void)
   /* USER CODE BEGIN 3 */
   tmp += 0.5; // acceleration
   if (tmp>=1) { tmp = 0; speed--; }
-  if(speed<sinus_points) speed = sinus_points;
+  if(speed<sinus_points/2) speed = sinus_points/2;
 
   for(i=0;i<=sinus_points;i++)
     {
       TIM1->CCR1=sin_table_a[i & (sinus_points-1)];
       TIM1->CCR2=sin_table_b[i & (sinus_points-1)];
       TIM1->CCR3=sin_table_c[i & (sinus_points-1)];
-      for(d=0;d<speed;d++)
+      for(uint16_t d=0;d<speed;d++)
       {
+        delay_cycle(1);
       }
     }
   }
