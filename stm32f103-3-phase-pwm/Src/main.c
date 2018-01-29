@@ -57,7 +57,7 @@ uint16_t sin_table_a[sinus_points];
 uint16_t sin_table_b[sinus_points];
 uint16_t sin_table_c[sinus_points];
 float tmp = 0; // acceleration time
-uint16_t speed = sinus_points+200; // set delay for begin minimal speed
+uint16_t speed = sinus_points; // set delay for begin minimal speed
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -141,7 +141,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
   tmp += 0.5; // acceleration
   if (tmp>=1) { tmp = 0; speed--; }
-  if(speed<sinus_points/2) speed = sinus_points/2;
+  if(speed<sinus_points/8) speed = sinus_points/8;
 
   for(i=0;i<=sinus_points;i++)
     {
