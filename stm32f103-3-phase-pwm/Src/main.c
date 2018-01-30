@@ -69,9 +69,9 @@ void sin_init(uint16_t i);
 
 void sin_init(uint16_t i)
 {
-  sin_table_c[(i+(sinus_points/3*2)) & (sinus_points-1)]=
-  sin_table_b[(i+sinus_points/3) & (sinus_points-1)]=
-  sin_table_a[i]=
+  sin_table_c[(i+(sinus_points/3*1)) & (sinus_points-1)]=
+  sin_table_b[(i+(sinus_points/3*2)) & (sinus_points-1)]=
+  sin_table_a[(i+(sinus_points/3*3)) & (sinus_points-1)]=
   minimal_amplitude+(uint16_t)((sin((float) i*(2*PI/sinus_points))+1)*(sinus_points/2-1));
 }
 
