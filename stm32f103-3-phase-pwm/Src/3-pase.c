@@ -1,8 +1,29 @@
+
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "tim.h"
+#include "gpio.h"
+
+/* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "math.h"
 #define sinus_points 255
 #define minimal_amplitude 3
 /* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
@@ -13,13 +34,11 @@ float PI = 3.14;
 uint16_t sin_table_a[sinus_points];
 uint16_t sin_table_b[sinus_points];
 uint16_t sin_table_c[sinus_points];
-float tmp = 0; // acceleration time
-uint16_t speed = sinus_points/2+2; // set delay for begin minimal speed
+float delay_time = 3000.0; // set delay for begin minimal speed
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void sin_init(uint16_t i);
@@ -32,10 +51,9 @@ void sin_init(uint16_t i)
   minimal_amplitude+(uint16_t)((sin((float) i*(2*PI/sinus_points))+1)*(sinus_points/2-1));
 }
 
-void delay_cycle(uint32_t cycle_count)
+void delay_cycle(volatile uint32_t cycle_count)
 {
-  uint32_t count=0;
-  for(count=0;count<cycle_count;count++)
+  while(cycle_count--)
   {
     __ASM volatile ("NOP");
   }
@@ -43,18 +61,23 @@ void delay_cycle(uint32_t cycle_count)
 
 /* USER CODE END PFP */
 
+/* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
-  uint32_t i;
-  /* USER CODE END 1 */
 
-  /* MCU Configuration----------------------------------------------------------*/
+  /* USER CODE END 1 */
+  
+
+  /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -73,7 +96,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
-
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);    //starts PWM on CH1 pin
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);    //starts PWM on CH2 pin
@@ -86,31 +108,26 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  for (i=0; i<sinus_points; i++)
+  for (uint32_t i=0; i<sinus_points; i++)
   {
     sin_init(i);
   }
 
   while (1)
   {
-  /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-  /* USER CODE BEGIN 3 */
-  tmp += 0.05; // acceleration
-  if (tmp>=1) { tmp = 0; speed--; }
-  if(speed<sinus_points/16) speed = sinus_points/16;
+    /* USER CODE BEGIN 3 */
 
-  for(i=0;i<=sinus_points;i++)
-    {
-      TIM1->CCR1=sin_table_a[i & (sinus_points-1)];
-      TIM1->CCR2=sin_table_b[i & (sinus_points-1)];
-      TIM1->CCR3=sin_table_c[i & (sinus_points-1)];
-      for(uint16_t d=0;d<speed;d++)
-      {
-        delay_cycle(1);
-      }
-    }
-  }
+   for(uint32_t i=0;i<=sinus_points;i++)
+   {
+     delay_time = delay_time - 0.25;
+     if(delay_time < 300) delay_time = 300;
+     TIM1->CCR1=sin_table_a[i & (sinus_points-1)];
+     TIM1->CCR2=sin_table_b[i & (sinus_points-1)];
+     TIM1->CCR3=sin_table_c[i & (sinus_points-1)];
+     delay_cycle(delay_time);
+   }
+ }
   /* USER CODE END 3 */
-
 }
