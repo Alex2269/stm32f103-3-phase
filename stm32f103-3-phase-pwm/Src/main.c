@@ -151,6 +151,10 @@ int main(void)
        delay_cycle(delay_time);
      }
 
+     /*
+      * Reduction of effective amplitude
+      * at low spindle rpm
+      */
      if(delay_time > 255)
      {
        TIM1->CCR1=(sin_table_a[i & (sinus_points-1)])-(delay_time/10);
