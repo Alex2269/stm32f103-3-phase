@@ -141,9 +141,9 @@ int main(void)
    for(uint32_t i=0;i<=sinus_points;i++)
    {
      delay_time = delay_time - 0.2;
-     if(delay_time < 255) delay_time = 255;
+     if(delay_time < sinus_points) delay_time = sinus_points;
 
-     if(delay_time <= 255)
+     if(delay_time <= sinus_points)
      {
        TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]);
        TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]);
@@ -155,7 +155,7 @@ int main(void)
       * Reduction of effective amplitude
       * at low spindle rpm
       */
-     if(delay_time > 255)
+     if(delay_time > sinus_points)
      {
        TIM1->CCR1=(sin_table_a[i & (sinus_points-1)])-(delay_time/10);
        TIM1->CCR2=(sin_table_b[i & (sinus_points-1)])-(delay_time/10);
