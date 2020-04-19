@@ -53,7 +53,7 @@ float PI = 3.14;
 uint16_t sin_table_a[sinus_points];
 uint16_t sin_table_b[sinus_points];
 uint16_t sin_table_c[sinus_points];
-float delay_time = 3000.0; // set delay for begin minimal speed
+float delay_time = 2550.0; // set delay for begin minimal speed
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,7 +124,7 @@ int main(void)
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2); //starts PWM on CH2N pin
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3); //starts PWM on CH3N pin
   /* USER CODE END 2 */
-
+ 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   for (uint32_t i=0; i<sinus_points; i++)
@@ -140,12 +140,24 @@ int main(void)
 
    for(uint32_t i=0;i<=sinus_points;i++)
    {
-     delay_time = delay_time - 0.25;
-     if(delay_time < 300) delay_time = 300;
-     TIM1->CCR1=sin_table_a[i & (sinus_points-1)];
-     TIM1->CCR2=sin_table_b[i & (sinus_points-1)];
-     TIM1->CCR3=sin_table_c[i & (sinus_points-1)];
-     delay_cycle(delay_time);
+     delay_time = delay_time - 0.2;
+     if(delay_time < 255) delay_time = 255;
+
+     if(delay_time <= 255)
+     {
+       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]);
+       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]);
+       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]);
+       delay_cycle(delay_time);
+     }
+
+     if(delay_time > 255)
+     {
+       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)])-(delay_time/10);
+       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)])-(delay_time/10);
+       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)])-(delay_time/10);
+       delay_cycle(delay_time);
+     }
    }
  }
   /* USER CODE END 3 */
