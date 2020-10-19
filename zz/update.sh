@@ -4,7 +4,7 @@
    git init
    git add .
    git commit -m "$(date "+%Y-%m-%d")"
-   git remote add origin git@github.com:Alex2269/stm32_tft_spi.git
+   git remote add origin git@github.com:Alex2269/stm32f103-3-phase
    git push -u origin master
    git pull
    #******************************************
