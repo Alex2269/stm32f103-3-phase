@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "math.h"
+#define AutoReload 256
 #define sinus_points 255
 #define minimal_amplitude 3
 /* USER CODE END Includes */
@@ -51,7 +52,9 @@ float PI = 3.14;
 uint16_t sin_table_a[sinus_points];
 uint16_t sin_table_b[sinus_points];
 uint16_t sin_table_c[sinus_points];
-float delay_time = 2550.0; // set delay for begin minimal speed
+float delay_time = 2000.0; // set delay for begin minimal speed
+float prescaler = 200.0; // set delay for begin minimal speed
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,6 +125,8 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  TIM1->ARR = AutoReload;
+
   LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);    //starts PWM on CH1 pin
   LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);    //starts PWM on CH2 pin
   LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);    //starts PWM on CH3 pin
@@ -130,8 +135,8 @@ int main(void)
   LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2N); //starts PWM on CH2N pin
   LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3N); //starts PWM on CH3N pin
 
-  LL_TIM_EnableCounter(TIM1);
-  
+  TIM1->CR1 = TIM_CR1_CEN; //  LL_TIM_EnableCounter(TIM1);
+
   //LL_TIM_OC_DisableFast(TIM1, LL_TIM_CHANNEL_CH2);
   //LL_TIM_OC_DisableFast(TIM1, LL_TIM_CHANNEL_CH3);
 
@@ -153,6 +158,7 @@ int main(void)
    for(uint32_t i=0;i<=sinus_points;i++)
    {
      delay_time = delay_time - 0.2;
+     prescaler = prescaler - 0.02;
      if(delay_time < sinus_points) delay_time = sinus_points;
 
      if(delay_time <= sinus_points)
@@ -169,10 +175,11 @@ int main(void)
       */
      if(delay_time > sinus_points)
      {
-       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)])-(delay_time/10);
-       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)])-(delay_time/10);
-       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)])-(delay_time/10);
+       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]);
+       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]);
+       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]);
        delay_cycle(delay_time);
+       TIM1->PSC = (uint16_t)prescaler; //  LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler);
      }
    }
  }
