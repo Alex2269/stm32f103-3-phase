@@ -172,9 +172,9 @@ int main(void)
       */
      if(delay_time > sinus_points)
      {
-       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]);
-       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]);
-       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]);
+       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]-(delay_time/10));
+       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]-(delay_time/10));
+       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]-(delay_time/10));
        delay_cycle(delay_time);
        TIM1->PSC = (uint16_t)prescaler; //  LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler);
      }
