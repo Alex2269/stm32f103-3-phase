@@ -27,7 +27,7 @@
 #include "math.h"
 #define AutoReload 256
 #define sinus_points 255
-#define minimal_amplitude 3
+#define minimal_amplitude 0
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -152,32 +152,39 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-   for(uint32_t i=0;i<=sinus_points;i++)
+   for(int32_t i=0;i<sinus_points;i++)
    {
-     delay_time -= 0.2;
-     prescaler  -= 0.02;
+     prescaler  -= 0.01;
+     if(prescaler < 40) prescaler = 40;
+
+     delay_time -= 0.1;
      if(delay_time < sinus_points) delay_time = sinus_points;
-
-     if(delay_time <= sinus_points)
-     {
-       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]);
-       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]);
-       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]);
-       delay_cycle(delay_time);
-     }
-
-     /*
-      * Reduction of effective amplitude
-      * at low spindle rpm
-      */
-     if(delay_time > sinus_points)
-     {
-       TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]/(delay_time/sinus_points));
-       TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]/(delay_time/sinus_points));
-       TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]/(delay_time/sinus_points));
-       delay_cycle(delay_time);
-       TIM1->PSC = (uint16_t)prescaler; //  LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler);
-     }
+     
+     TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]);
+     TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]);
+     TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]);
+     
+//      /*
+//       * Reduction of effective amplitude
+//       * at low spindle rpm
+//       */
+//      if(delay_time > sinus_points)
+//      {
+//        if(i>127)
+//        {
+//          TIM1->CCR1=127+(sin_table_a[i & (sinus_points-1)]/(delay_time/sinus_points));
+//          TIM1->CCR2=127+(sin_table_b[i & (sinus_points-1)]/(delay_time/sinus_points));
+//          TIM1->CCR3=127+(sin_table_c[i & (sinus_points-1)]/(delay_time/sinus_points));
+//        }
+//        else
+//        {
+//          TIM1->CCR1=127+(sin_table_a[i & (sinus_points-1)]/(delay_time/sinus_points));
+//          TIM1->CCR2=127+(sin_table_b[i & (sinus_points-1)]/(delay_time/sinus_points));
+//          TIM1->CCR3=127+(sin_table_c[i & (sinus_points-1)]/(delay_time/sinus_points));
+//        }
+//      }z
+     delay_cycle(delay_time);
+     TIM1->PSC = (uint16_t)prescaler; //  LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler);
    }
  }
   /* USER CODE END 3 */
