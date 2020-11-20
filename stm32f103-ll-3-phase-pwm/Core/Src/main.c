@@ -182,7 +182,8 @@ int main(void)
 //          TIM1->CCR2=127+(sin_table_b[i & (sinus_points-1)]/(delay_time/sinus_points));
 //          TIM1->CCR3=127+(sin_table_c[i & (sinus_points-1)]/(delay_time/sinus_points));
 //        }
-//      }z
+//      }
+
      delay_cycle(delay_time);
      TIM1->PSC = (uint16_t)prescaler; //  LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler);
    }
