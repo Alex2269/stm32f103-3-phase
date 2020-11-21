@@ -79,7 +79,7 @@ void delay_cycle(volatile uint32_t cycle_count)
 {
   while(cycle_count--)
   {
-    __ASM volatile ("NOP");
+    __asm__ volatile ("nop");
   }
 }
 
