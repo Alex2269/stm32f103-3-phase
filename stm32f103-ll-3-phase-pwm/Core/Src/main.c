@@ -25,9 +25,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "math.h"
+#include "sin256.h"
+
 #define AutoReload 256
 #define sinus_points 255
-#define minimal_amplitude 0
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,26 +51,29 @@
 /* USER CODE BEGIN PV */
 
 float PI = 3.14;
-uint16_t sin_table_a[sinus_points];
-uint16_t sin_table_b[sinus_points];
-uint16_t sin_table_c[sinus_points];
 float delay_time = 2000.0; // set delay for begin minimal speed
-float prescaler = 200.0; // set delay for begin minimal speed
+float prescaler = 20.0; // set delay for begin minimal speed
+//
+//
+volatile uint8_t index_a_sin = 0; // Индекс фазы A в таблице синуса
+volatile uint8_t index_b_sin = 85; // Индекс фазы B в таблице синуса
+volatile uint8_t index_c_sin = 43; // Индекс фазы C в таблице синуса
+volatile uint8_t temp_sin; // служебная переменная 1 байт
+volatile uint8_t temp_a; // временное хранение значения фазы A
+volatile uint8_t temp_b; // временное хранение значения фазы B
+volatile uint8_t temp_c; // временное хранение значения фазы C
+volatile uint8_t pol_a = 1; // полярность фазы A "1" - больше 126
+volatile uint8_t pol_b = 1; // полярность фазы B "0" - меньше 128
+volatile uint8_t pol_c = 0; // полярность фазы C
+volatile uint8_t index_bc_calc = 1; // "1" - вычислять индексы для фаз В и С
+volatile uint8_t inc_ind = 1; // Шаг индекса в таблице синуса
+volatile float amp_sin = 0; // амплитуда синуса. 255 это максимум.
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void sin_init(uint16_t i);
-
-void sin_init(uint16_t i)
-{
-  sin_table_c[(i+(sinus_points/3*1)) & (sinus_points-1)]=
-  sin_table_b[(i+(sinus_points/3*2)) & (sinus_points-1)]=
-  sin_table_a[(i+(sinus_points/3*3)) & (sinus_points-1)]=
-  minimal_amplitude+(uint16_t)((sin((float) i*(2*PI/sinus_points))+1)*(sinus_points/2-1));
-}
 
 void delay_cycle(volatile uint32_t cycle_count)
 {
@@ -128,12 +133,12 @@ int main(void)
 
   TIM1->ARR = AutoReload; // set auto-reload register
 
-  TIM1->CCER |= TIM_CCER_CC1E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);   //starts PWM on CH1 pin
-  TIM1->CCER |= TIM_CCER_CC2E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);   //starts PWM on CH2 pin
-  TIM1->CCER |= TIM_CCER_CC3E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);   //starts PWM on CH3 pin
-  TIM1->CCER |= TIM_CCER_CC1NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1N);  //starts PWM on CH1N pin
-  TIM1->CCER |= TIM_CCER_CC2NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2N);  //starts PWM on CH2N pin
-  TIM1->CCER |= TIM_CCER_CC3NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3N);  //starts PWM on CH3N pin
+  TIM1->CCER |= TIM_CCER_CC1E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);   // start PWM on CH1 pin
+  TIM1->CCER |= TIM_CCER_CC2E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);   // start PWM on CH2 pin
+  TIM1->CCER |= TIM_CCER_CC3E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);   // start PWM on CH3 pin
+  TIM1->CCER |= TIM_CCER_CC1NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1N);  // start PWM on CH1N pin
+  TIM1->CCER |= TIM_CCER_CC2NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2N);  // start PWM on CH2N pin
+  TIM1->CCER |= TIM_CCER_CC3NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3N);  // start PWM on CH3N pin
 
   TIM1->CR1 = TIM_CR1_CEN; //  LL_TIM_EnableCounter(TIM1);
 
@@ -141,53 +146,144 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  for (uint32_t i=0; i<sinus_points; i++)
-  {
-    sin_init(i);
-  }
 
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    for(int32_t i=0;i<sinus_points;i++)
+    {
+      prescaler  -= 0.01; // повышение частоты таймера
+      if(prescaler < 40) prescaler = 40; // limit prescaler
 
-   for(int32_t i=0;i<sinus_points;i++)
-   {
-     prescaler  -= 0.01;
-     if(prescaler < 40) prescaler = 40;
+      delay_time -= 0.1; // уменьшение периода (раскрутка)
+      if(delay_time < sinus_points) delay_time = sinus_points; // limit delay_time
 
-     delay_time -= 0.1;
-     if(delay_time < sinus_points) delay_time = sinus_points;
-     
-     TIM1->CCR1=(sin_table_a[i & (sinus_points-1)]);
-     TIM1->CCR2=(sin_table_b[i & (sinus_points-1)]);
-     TIM1->CCR3=(sin_table_c[i & (sinus_points-1)]);
-     
-//      /*
-//       * Reduction of effective amplitude
-//       * at low spindle rpm
-//       */
-//      if(delay_time > sinus_points)
-//      {
-//        if(i>127)
-//        {
-//          TIM1->CCR1=127+(sin_table_a[i & (sinus_points-1)]/(delay_time/sinus_points));
-//          TIM1->CCR2=127+(sin_table_b[i & (sinus_points-1)]/(delay_time/sinus_points));
-//          TIM1->CCR3=127+(sin_table_c[i & (sinus_points-1)]/(delay_time/sinus_points));
-//        }
-//        else
-//        {
-//          TIM1->CCR1=127+(sin_table_a[i & (sinus_points-1)]/(delay_time/sinus_points));
-//          TIM1->CCR2=127+(sin_table_b[i & (sinus_points-1)]/(delay_time/sinus_points));
-//          TIM1->CCR3=127+(sin_table_c[i & (sinus_points-1)]/(delay_time/sinus_points));
-//        }
-//      }
+      amp_sin += 0.025; // прирост амплитуды
+      if(amp_sin>254) amp_sin=255; // limt amplitude
 
-     delay_cycle(delay_time);
-     TIM1->PSC = (uint16_t)prescaler; //  LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler);
-   }
- }
+      // ============================================
+      // Вычисления для Фазы А
+      // index_a_sin += inc_ind;
+      // ============================================
+      // Перекл. полярн. Фазы А и вычисление индекса
+      if (index_a_sin > 127)
+      {
+        index_a_sin -= 128;
+        index_bc_calc = 0; // не вычислять индексы для фаз В и С
+        if (pol_a)
+        {
+          // Переключение полярности Фаз
+          pol_a = 0; pol_b = 0; pol_c = 1;
+          index_b_sin = index_a_sin + 85;
+          index_c_sin = index_a_sin + 43;
+        }
+        else
+        {
+          pol_a = 1; pol_b = 1; pol_c = 0;
+          index_b_sin = index_a_sin + 85;
+          index_c_sin = index_a_sin + 43;
+        }
+      }
+      // ============================================
+      // Проверка индексов для Фаз B и C и полярности
+      if (index_bc_calc)
+      {
+        // ============================================
+        // Вычисл. индекса Фазы B и полярности
+        if (index_b_sin > 127)
+        {
+          index_b_sin -= 128;
+          if (pol_b)
+          {
+            // Переключение полярности Фазы B
+            pol_b = 0;
+          }
+          else
+          {
+            pol_b = 1;
+          }
+        }
+        // ============================================
+        // Вычисл. индекса Фазы С и полярности
+        if (index_c_sin > 127)
+        {
+          index_c_sin -= 128;
+          if (pol_c)
+          {
+            // Переключение полярности Фазы B
+            pol_c = 0;
+          }
+          else
+          {
+            pol_c = 1;
+          }
+        }
+      }
+      // ============================================
+      // ТУТ индексы всех фах известны и полярности тоже.
+      // ============================================
+      // Вычисление амплитуды Фазы А
+      // Умножаем значение из таблицы на коэф. amp_sin и берем старший байт.
+      temp_sin = (((int16_t)amp_sin * (int16_t)sinus[index_a_sin])) >> 8;
+
+      if (pol_a)
+      {
+        // если положительная полуволна Фазы
+        temp_a = temp_sin + 127; // PWM CH1 Phase_A
+      }
+      else
+      {
+        // если отрицательная полуволна Фазы
+        temp_a = 127 - temp_sin;
+      }
+      // ============================================
+      // Вычисление амплитуды Фазы B
+      // Умножаем значение из таблицы на коэф. amp_sin и берем старший байт.
+      temp_sin = (((int16_t)amp_sin * (int16_t)sinus[index_b_sin])) >> 8;
+
+      if (pol_b)
+      {
+        // если положительная полуволна Фазы
+        temp_b = temp_sin + 127; // PWM CH2 Phase_B
+      }
+      else
+      {
+        // если отрицательная полуволна Фазы
+        temp_b = 127 - temp_sin;
+      }
+      // ========================================================
+      // Вычисление амплитуды Фазы C
+      // Умножаем значение из таблицы на коэф. amp_sin и берем старший байт.
+      temp_sin = (((int16_t)amp_sin * (int16_t)sinus[index_c_sin])) >> 8;
+
+      if (pol_c)
+      {
+        // если положительная полуволна Фазы
+        temp_c = temp_sin + 127; // PWM CH3 Phase_C
+      }
+      else
+      {
+        // если отрицательная полуволна Фазы
+        temp_c = 127 - temp_sin;
+      }
+      // =========================================================
+      // Запись значений ШИМ в регистры Capture/compare
+      TIM1->CCR1 = temp_a; // PWM CH1 Phase_A
+      TIM1->CCR2 = temp_b; // PWM CH2 Phase_B
+      TIM1->CCR3 = temp_c; // PWM CH3 Phase_C
+      // =========================================================
+      // Инкремент индексов
+      index_a_sin += inc_ind; // следующий индекс PWM CH1 Phase_A
+      index_b_sin += inc_ind; // следующий индекс PWM CH2 Phase_B
+      index_c_sin += inc_ind; // следующий индекс PWM CH3 Phase_C
+      index_bc_calc = 1; // вычислять индексы для фаз В и С
+
+      delay_cycle(delay_time);
+      TIM1->PSC = (uint16_t)prescaler; // LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler); // adjust frequency
+    }
+  }
   /* USER CODE END 3 */
 }
 
