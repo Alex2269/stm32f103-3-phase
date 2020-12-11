@@ -128,12 +128,12 @@ int main(void)
 
   TIM1->ARR = AutoReload; // set auto-reload register
 
-  TIM1->CCER |= TIM_CCER_CC1E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);   //starts PWM on CH1 pin
-  TIM1->CCER |= TIM_CCER_CC2E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);   //starts PWM on CH2 pin
-  TIM1->CCER |= TIM_CCER_CC3E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);   //starts PWM on CH3 pin
-  TIM1->CCER |= TIM_CCER_CC1NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1N);  //starts PWM on CH1N pin
-  TIM1->CCER |= TIM_CCER_CC2NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2N);  //starts PWM on CH2N pin
-  TIM1->CCER |= TIM_CCER_CC3NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3N);  //starts PWM on CH3N pin
+  TIM1->CCER |= TIM_CCER_CC1E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);   // start PWM on CH1 pin
+  TIM1->CCER |= TIM_CCER_CC2E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);   // start PWM on CH2 pin
+  TIM1->CCER |= TIM_CCER_CC3E;  // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);   // start PWM on CH3 pin
+  TIM1->CCER |= TIM_CCER_CC1NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1N);  // start PWM on CH1N pin
+  TIM1->CCER |= TIM_CCER_CC2NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2N);  // start PWM on CH2N pin
+  TIM1->CCER |= TIM_CCER_CC3NE; // LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3N);  // start PWM on CH3N pin
 
   TIM1->CR1 = TIM_CR1_CEN; //  LL_TIM_EnableCounter(TIM1);
 
