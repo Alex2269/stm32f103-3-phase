@@ -65,7 +65,7 @@ volatile uint8_t temp_c; // временное хранение значения
 volatile uint8_t pol_a = 1; // полярность фазы A "1" - больше 126
 volatile uint8_t pol_b = 1; // полярность фазы B "0" - меньше 128
 volatile uint8_t pol_c = 0; // полярность фазы C
-volatile uint8_t index_bc_calc = 1; // "1" - вычислять индексы для фаз В и С
+volatile uint8_t index_bc_calc = 1; // "1" - calculate indexes for phases B & C
 volatile uint8_t inc_ind = 1; // Шаг индекса в таблице синуса
 volatile float amp_sin = 0; // амплитуда синуса. 255 это максимум.
 
@@ -120,7 +120,7 @@ void spin(void)
     if (index_a_sin > 127)
     {
       index_a_sin -= 128;
-      index_bc_calc = 0; // не вычислять индексы для фаз В и С
+      index_bc_calc = 0; // no calculate indexes for phases B & C
       if (pol_a)
       {
         // Переключение полярности Фаз
@@ -180,7 +180,7 @@ void spin(void)
     if (pol_a)
     {
       // если положительная полуволна Фазы
-      temp_a = temp_sin + 127; // PWM CH1 Phase_A
+      temp_a = temp_sin + 127;
     }
     else
     {
@@ -195,7 +195,7 @@ void spin(void)
     if (pol_b)
     {
       // если положительная полуволна Фазы
-      temp_b = temp_sin + 127; // PWM CH2 Phase_B
+      temp_b = temp_sin + 127;
     }
     else
     {
@@ -210,7 +210,7 @@ void spin(void)
     if (pol_c)
     {
       // если положительная полуволна Фазы
-      temp_c = temp_sin + 127; // PWM CH3 Phase_C
+      temp_c = temp_sin + 127;
     }
     else
     {
@@ -219,15 +219,15 @@ void spin(void)
     }
     // =========================================================
     // Запись значений ШИМ в регистры Capture/compare
-    TIM1->CCR1 = temp_a; // PWM CH1 Phase_A
-    TIM1->CCR2 = temp_b; // PWM CH2 Phase_B
-    TIM1->CCR3 = temp_c; // PWM CH3 Phase_C
+    TIM1->CCR1 = temp_a; // PWM CH1 phase_A
+    TIM1->CCR2 = temp_b; // PWM CH2 phase_B
+    TIM1->CCR3 = temp_c; // PWM CH3 phase_C
     // =========================================================
     // Инкремент индексов
-    index_a_sin += inc_ind; // следующий индекс PWM CH1 Phase_A
-    index_b_sin += inc_ind; // следующий индекс PWM CH2 Phase_B
-    index_c_sin += inc_ind; // следующий индекс PWM CH3 Phase_C
-    index_bc_calc = 1; // вычислять индексы для фаз В и С
+    index_a_sin += inc_ind; // next index phase_A
+    index_b_sin += inc_ind; // next index phase_B
+    index_c_sin += inc_ind; // next index phase_C
+    index_bc_calc = 1; // calculate indexes for phases B & C
     // --
     delay_cycle(delay_time);
     TIM1->PSC = (uint16_t)prescaler; // LL_TIM_SetPrescaler(TIM1, (uint16_t)prescaler); // adjust frequency
