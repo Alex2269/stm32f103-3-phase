@@ -170,7 +170,9 @@ flash:
 stm32flash:
 	stm32flash -w $(BUILD_DIR)/$(TARGET).bin -v -g 0x0 /dev/ttyUSB0
 #######################################
-
+debug:
+	openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg &
+	gdb-multiarch $(BUILD_DIR)/$(TARGET).elf
 #######################################
 # clean up
 #######################################
