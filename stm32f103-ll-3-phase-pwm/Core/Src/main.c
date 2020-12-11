@@ -52,7 +52,7 @@
 
 float PI = 3.14;
 float delay_time = 2000.0; // set delay for begin minimal speed
-float prescaler = 20.0; // set delay for begin minimal speed
+float prescaler = 80.0; // set delay for begin minimal speed
 //
 //
 volatile uint8_t index_a_sin = 0; // Индекс фазы A в таблице синуса
